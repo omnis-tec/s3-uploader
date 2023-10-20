@@ -13,17 +13,25 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/rendau/s3-uploader/internal/core"
 	"github.com/rendau/s3-uploader/internal/httphandler"
+	"github.com/rendau/s3-uploader/internal/ost"
 	"github.com/rs/cors"
 )
 
 type Conf struct {
-	Debug    bool   `env:"DEBUG" envDefault:"false"`
-	HttpPort string `env:"HTTP_PORT" envDefault:"80"`
-	HttpCors bool   `env:"HTTP_CORS" envDefault:"false"`
+	Debug       bool   `env:"DEBUG" envDefault:"false"`
+	HttpPort    string `env:"HTTP_PORT" envDefault:"80"`
+	HttpCors    bool   `env:"HTTP_CORS" envDefault:"false"`
+	OstUrl      string `env:"OST_URL"`
+	OstKeyId    string `env:"OST_KEY_ID"`
+	OstKey      string `env:"OST_KEY"`
+	OstSecure   bool   `env:"OST_SECURE" envDefault:"false"`
+	OstBucket   string `env:"OST_BUCKET"`
+	UrlTemplate string `env:"URL_TEMPLATE"`
 }
 
 type App struct {
 	conf Conf
+	ost  *ost.St
 	core *core.Core
 
 	httpServer *http.Server
@@ -47,14 +55,23 @@ func (a *App) Init() {
 		}
 	}
 
-	// core
+	// ost
 	{
-		a.core = core.NewCore()
+		var err error
+		a.ost, err = ost.New(a.conf.OstUrl, a.conf.OstKeyId, a.conf.OstKey, a.conf.OstSecure)
+		a.errAssert(err, "fail to ost.New")
 	}
 
-	// http-gw server
+	// core
 	{
-		router := httphandler.NewHttpHandler()
+		var err error
+		a.core, err = core.NewCore(a.conf.OstBucket, a.conf.UrlTemplate, a.ost)
+		a.errAssert(err, "fail to core.NewCore")
+	}
+
+	// http server
+	{
+		router := httphandler.NewHttpHandler(a.core)
 
 		// router
 

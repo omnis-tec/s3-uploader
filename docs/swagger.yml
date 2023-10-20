@@ -8,14 +8,29 @@ schemes:
   - https
 basePath: /
 consumes:
+  - octet-stream
   - application/json
 produces:
   - application/json
 paths:
-  /healthcheck:
-    get:
+  /save:
+    post:
+      consumes:
+        - binary
+      parameters:
+        - in: body
+          name: body
+          schema:
+            type: string
       responses:
         '200':
-          description: A successful response.
+          description: OK
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              url:
+                type: string
       tags:
         - main

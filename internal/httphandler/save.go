@@ -2,6 +2,7 @@ package httphandler
 
 import (
 	"net/http"
+	"strconv"
 )
 
 type saveRepSt struct {
@@ -10,7 +11,13 @@ type saveRepSt struct {
 }
 
 func (h *handlerSt) Save(w http.ResponseWriter, r *http.Request) {
-	repObj, err := h.cr.Save(r.Body, r.Header.Get("Content-Type"))
+	var bodySize int64
+
+	if cl := r.Header.Get("Content-Length"); cl != "" {
+		bodySize, _ = strconv.ParseInt(cl, 10, 64)
+	}
+
+	repObj, err := h.cr.Save(r.Body, bodySize, r.Header.Get("Content-Type"))
 	if uCheckErr(w, err) {
 		return
 	}

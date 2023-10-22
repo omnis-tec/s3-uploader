@@ -11,10 +11,10 @@ type SaveResponseSt struct {
 	Url string
 }
 
-func (c *Core) Save(data io.Reader, contentType string) (*SaveResponseSt, error) {
+func (c *Core) Save(data io.Reader, size int64, contentType string) (*SaveResponseSt, error) {
 	objectId := c.GenerateObjectName()
 
-	err := c.ost.PutObject(c.bucketName, objectId, data, contentType)
+	err := c.ost.PutObject(c.bucketName, objectId, data, size, contentType)
 	if err != nil {
 		return nil, fmt.Errorf("fail to ost.PutObject: %w", err)
 	}

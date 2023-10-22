@@ -1,6 +1,7 @@
 package ost
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -47,8 +48,17 @@ func (o *St) CreateBucket(name string) error {
 	return nil
 }
 
-func (o *St) PutObject(bucketName, name string, data io.Reader, contentType string) error {
-	_, err := o.Client.PutObject(context.Background(), bucketName, name, data, -1, minio.PutObjectOptions{
+func (o *St) PutObject(bucketName, name string, data io.Reader, size int64, contentType string) error {
+	if size <= 0 {
+		dataContent, err := io.ReadAll(data)
+		if err != nil {
+			return fmt.Errorf("io.ReadAll error: %w", err)
+		}
+		size = int64(len(dataContent))
+		data = bytes.NewReader(dataContent)
+	}
+
+	_, err := o.Client.PutObject(context.Background(), bucketName, name, data, size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {

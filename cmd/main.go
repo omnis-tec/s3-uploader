@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -102,7 +103,9 @@ func (a *App) Init() {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
 					if recErr := recover(); recErr != nil {
-						slog.Error("Recovered from panic", slog.Any("err", recErr))
+						buf := make([]byte, 1<<20)
+						stackLen := runtime.Stack(buf, false)
+						slog.Error("Recovered from panic", slog.Any("err", recErr), slog.String("stack", string(buf[:stackLen])))
 						w.WriteHeader(http.StatusInternalServerError)
 					}
 				}()

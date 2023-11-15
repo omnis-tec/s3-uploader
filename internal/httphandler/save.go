@@ -2,7 +2,6 @@ package httphandler
 
 import (
 	"net/http"
-	"strconv"
 )
 
 type saveRepSt struct {
@@ -11,19 +10,32 @@ type saveRepSt struct {
 }
 
 func (h *handlerSt) Save(w http.ResponseWriter, r *http.Request) {
-	var bodySize int64
-
-	if cl := r.Header.Get("Content-Length"); cl != "" {
-		bodySize, _ = strconv.ParseInt(cl, 10, 64)
-	}
-
-	repObj, err := h.cr.Save(r.Body, bodySize, r.Header.Get("Content-Type"))
+	err := r.ParseMultipartForm(32 << 20)
 	if uCheckErr(w, err) {
 		return
 	}
 
-	uRespondJson(w, http.StatusOK, saveRepSt{
-		Id:  repObj.Id,
-		Url: repObj.Url,
-	})
+	result := make([]saveRepSt, 0, len(r.MultipartForm.File))
+
+	for _, fHeaders := range r.MultipartForm.File {
+		for _, fHeader := range fHeaders {
+			f, err := fHeader.Open()
+			if uCheckErr(w, err) {
+				return
+			}
+			defer f.Close()
+
+			repObj, err := h.cr.Save(f, fHeader.Size, fHeader.Header.Get("Content-Type"))
+			if uCheckErr(w, err) {
+				return
+			}
+
+			result = append(result, saveRepSt{
+				Id:  repObj.Id,
+				Url: repObj.Url,
+			})
+		}
+	}
+
+	uRespondJson(w, http.StatusOK, result)
 }

@@ -12,7 +12,7 @@ type saveRepSt struct {
 func (h *handlerSt) Save(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
 
-	result := make([]saveRepSt, 0, len(r.MultipartForm.File))
+	result := make([]saveRepSt, 0, 10)
 
 	if contentType == "multipart/form-data" {
 		err := r.ParseMultipartForm(32 << 20)

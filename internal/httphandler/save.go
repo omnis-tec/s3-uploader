@@ -2,6 +2,7 @@ package httphandler
 
 import (
 	"net/http"
+	"strings"
 )
 
 type saveRepSt struct {
@@ -14,7 +15,7 @@ func (h *handlerSt) Save(w http.ResponseWriter, r *http.Request) {
 
 	result := make([]saveRepSt, 0, 10)
 
-	if contentType == "multipart/form-data" {
+	if strings.Contains(contentType, "multipart/form-data") {
 		err := r.ParseMultipartForm(32 << 20)
 		if uCheckErr(w, err) {
 			return

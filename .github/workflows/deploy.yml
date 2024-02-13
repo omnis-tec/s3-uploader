@@ -8,7 +8,7 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-latest
     env:
-      OWNER: rendau
+      OWNER: omnis-tec
       IMAGE: s3-uploader
     steps:
       - uses: actions/checkout@v2
